@@ -3,5 +3,5 @@
 pub(crate) mod challenge;
 
 fn main() {
-    challenge::day2p1::run();
+    challenge::day2p2::run();
 }

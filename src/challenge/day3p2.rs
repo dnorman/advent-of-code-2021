@@ -7,39 +7,31 @@ pub fn run() {
         .map(|line| usize::from_str_radix(line, 2).unwrap())
         .collect();
 
-    let mut oxygen_generator_rating = 0usize;
-    {
-        let mut og_lines = lines.clone();
-        'og_scan: for bit in (0..WIDTH).rev() {
-            let match_bit = avg_bit_round_up(&og_lines, bit);
+    let oxygen_gen_rating = get_line_with_most_matching_msb(lines.clone(), false).unwrap();
+    let co2_scrubber_rating = get_line_with_most_matching_msb(lines.clone(), true).unwrap();
 
-            og_lines.retain(|line| match_bit == query_bit(*line, bit));
-
-            if og_lines.len() == 1 {
-                oxygen_generator_rating = og_lines[0];
-                break 'og_scan;
-            }
-        }
-    }
-
-    let mut co2_scrubber_rating = 0usize;
-    {
-        let mut co2_lines = lines.clone();
-        'co2_scan: for bit in (0..WIDTH).rev() {
-            let match_bit = !avg_bit_round_up(&co2_lines, bit);
-
-            co2_lines.retain(|line| match_bit == query_bit(*line, bit));
-
-            if co2_lines.len() == 1 {
-                co2_scrubber_rating = co2_lines[0];
-                break 'co2_scan;
-            }
-        }
-    }
-
-    let life_support_rating = oxygen_generator_rating * co2_scrubber_rating;
+    let life_support_rating = oxygen_gen_rating * co2_scrubber_rating;
 
     assert_eq!(life_support_rating, 5736383);
+}
+
+fn get_line_with_most_matching_msb(mut lines: Vec<usize>, invert: bool) -> Result<usize, ()> {
+    //iterate over bit positions from msb to lsb
+    for bit in (0..WIDTH).rev() {
+        // get the average value over all lines for this bit offset. Rounding up in the case of a tie
+        let mut match_bit = avg_bit_round_up(&lines, bit);
+        if invert {
+            match_bit = !match_bit;
+        }
+
+        // throw out any lines that don't match the average bit
+        lines.retain(|line| match_bit == query_bit(*line, bit));
+
+        if lines.len() == 1 {
+            return Ok(lines[0]);
+        }
+    }
+    Err(())
 }
 
 fn query_bit(num: usize, bit: u8) -> bool {

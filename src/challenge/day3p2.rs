@@ -19,10 +19,7 @@ fn get_line_with_most_matching_msb(mut lines: Vec<usize>, invert: bool) -> Resul
     //iterate over bit positions from msb to lsb
     for bit in (0..WIDTH).rev() {
         // get the average value over all lines for this bit offset. Rounding up in the case of a tie
-        let mut match_bit = avg_bit_round_up(&lines, bit);
-        if invert {
-            match_bit = !match_bit;
-        }
+        let match_bit = invert ^ avg_bit_round_up(&lines, bit);
 
         // throw out any lines that don't match the average bit
         lines.retain(|line| match_bit == query_bit(*line, bit));
@@ -34,8 +31,8 @@ fn get_line_with_most_matching_msb(mut lines: Vec<usize>, invert: bool) -> Resul
     Err(())
 }
 
-fn query_bit(num: usize, bit: u8) -> bool {
-    ((num >> bit) & 1) != 0
+fn query_bit(line: usize, bit: u8) -> bool {
+    ((line >> bit) & 1) != 0
 }
 
 // get the average value of the specified bit in the list, rounding up in cases of a tie
@@ -47,8 +44,7 @@ fn avg_bit_round_up(lines: &[usize], bit: u8) -> bool {
         }
     }
 
-    let zeros = lines.len() - ones;
-    return ones >= zeros;
+    return ones >= lines.len() - ones;
 }
 
 // Is binary averaging like, a remotely normal thing to do?
